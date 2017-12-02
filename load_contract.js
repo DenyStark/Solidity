@@ -4,8 +4,10 @@ var my_address = "0xe0968ff0d16680bab00a390ba4edabbe1ab9c523";
 
 personal.unlockAccount(my_address, "password");
 
-var contract_address = "0x0531d329d883548fce87c2441b841fdee8045239";
-var contract_ = web3.eth.contract([{"constant":false,"inputs":[{"name":"_number","type":"uint256"}],"name":"setNumber","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]);
+var contract_address = "0x8296ba00fd600ff600fae0eab66b270e444fbd54";
+var abi = [{"constant":false,"inputs":[{"name":"newWord","type":"string"}],"name":"setWord","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getWord","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}];
+
+var contract_ = web3.eth.contract(abi);
 
 var contr = contract_.at(contract_address);
 console.log(contr.getNumber())

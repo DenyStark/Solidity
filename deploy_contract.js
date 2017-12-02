@@ -6,7 +6,7 @@ var address = "0xB305F6450158cb61277E57d80925Fcca1e3AF8e2"; // in Ropsten
 var private_key = "0xe2dbf9358232158b14312e57944938810a771f891b761bed28a1e09544670afb";
 
 var account = web3.eth.accounts.privateKeyToAccount(private_key);
-if (account.address != address) {
+if (account.address !== address) {
     exit('plz enter valid address private key');
 }
 
@@ -28,7 +28,7 @@ myContract.deploy({
 .send({
     from: address,
     gas: 200000,
-    // gasPrice: '30000000000000000'
+    gasPrice: 3000000000
 }, function(error, transactionHash){ 
         console.log("Deploying...");
         console.log(error); 
