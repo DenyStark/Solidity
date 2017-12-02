@@ -1,1 +1,0 @@
-[{"constant":true,"inputs":[],"name":"successfullyExecutedIterations","outputs":[{"name":"","type":"int256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_iterations","type":"int256"}],"name":"doWork","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]
