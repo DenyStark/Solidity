@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.13;
  
 contract ERC20Basic {
     uint256 public totalSupply;
@@ -19,21 +19,17 @@ contract ERC20 is ERC20Basic {
  
 library SafeMath {
     function mul(uint256 a, uint256 b) internal constant returns (uint256) {
-        uint256 c = a * b;
-        assert(a == 0 || c / a == b);
+        uint256 c = a * b; assert(a == 0 || c / a == b);
         return c;
     }
-
     function div(uint256 a, uint256 b) internal constant returns (uint256) {
         uint256 c = a / b;
         return c;
     }
- 
     function sub(uint256 a, uint256 b) internal constant returns (uint256) {
-        assert(b <= a); 
+        assert(b <= a);
         return a - b; 
-    } 
-  
+    }
     function add(uint256 a, uint256 b) internal constant returns (uint256) { 
         uint256 c = a + b; assert(c >= a);
         return c;
@@ -55,7 +51,6 @@ contract BasicToken is ERC20Basic {
         
         return true; 
     } 
- 
     function balanceOf(address _owner) public constant returns (uint256 balance) { 
         return balances[_owner]; 
     } 
@@ -75,52 +70,43 @@ contract StandardToken is ERC20, BasicToken {
         Transfer(_from, _to, _value); 
         
         return true; 
-    } 
- 
+    }
     function approve(address _spender, uint256 _value) public returns (bool) { 
         allowed[msg.sender][_spender] = _value; 
         Approval(msg.sender, _spender, _value); 
         return true; 
     }
- 
     function allowance(address _owner, address _spender) public constant returns (uint256 remaining) { 
         return allowed[_owner][_spender]; 
     } 
- 
     function increaseApproval (address _spender, uint _addedValue) public returns (bool success) {
         allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
         Approval(msg.sender, _spender, allowed[msg.sender][_spender]); 
         return true; 
     }
- 
     function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool success) {
-        uint oldValue = allowed[msg.sender][_spender]; 
+        uint oldValue = allowed[msg.sender][_spender];
+        
         if (_subtractedValue > oldValue) { allowed[msg.sender][_spender] = 0; }
         else { allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue); }
-        Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         
+        Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
-    }
- 
-    function() public payable {
-        revert();
     }
 }
  
 contract Ownable {
     address public owner;
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
- 
-    function Ownable() public {owner = msg.sender;}
 
+    function Ownable() { owner = msg.sender; }
+    
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
     
-    function transferOwnership(address newOwner) onlyOwner public {
-        require(newOwner != address(0));
-        OwnershipTransferred(owner, newOwner);
+    function transferOwnership(address newOwner) onlyOwner {
+        require(newOwner != address(0));      
         owner = newOwner;
     }
 }
@@ -136,21 +122,21 @@ contract MintableToken is StandardToken, Ownable {
         require(msg.sender == saleAgent || msg.sender == owner);
         saleAgent = newSaleAgnet;
     }
- 
     function mint(address _to, uint256 _amount) public returns (bool) {
         require((msg.sender == saleAgent || msg.sender == owner) && !mintingFinished);
         
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
         Mint(_to, _amount);
+        
         return true;
     }
- 
     function finishMinting() public returns (bool) {
         require((msg.sender == saleAgent || msg.sender == owner) && !mintingFinished);
         
         mintingFinished = true;
         MintFinished();
+        
         return true;
     }
 }
@@ -161,44 +147,50 @@ contract SimpleTokenCoin is MintableToken {
     uint32 public constant decimals = 18;
 }
 
-contract Crowdsale {
+contract Crowdsale is Ownable {
     using SafeMath for uint; 
     
-    address owner;
     address multisig;
     address restricted;
     
     SimpleTokenCoin public token = new SimpleTokenCoin();
     
-    uint start = 1500379200;
-    uint period = 2428;
-
+    uint start;
+    uint period;
     uint hardcap;
-    uint rate = 10;
+    uint rate;
     uint restrictedPercent;
-    
-    function Crowdsale() {
-        owner = msg.sender;
-    }
     
     modifier saleIsOn() {
     	require(now > start && now < start + period * 1 days);
     	_;
     }
-    ///!!!!
     modifier isUnderHardCap() {
         require(multisig.balance <= hardcap);
         _;
     }
     
-    function createTokens() saleIsOn payable {
+    function Crowdsale() {
+        multisig = 0x583031d1113ad414f02576bd6afabfb302140225;
+        start = 1500379200;
+        period = 2428;
+        rate = 2 ether;
+        hardcap = 200 ether;
+        
+        restricted = 0xdd870fa1b7c4700f2bd7f44238821c26f7392148;
+        restrictedPercent = 40;
+    }
+    function finishMinting() onlyOwner {
+	    uint issuedTokenSupply = token.totalSupply();
+	    uint restrictedTokens = issuedTokenSupply.mul(restrictedPercent).div(100 - restrictedPercent);
+	    token.mint(restricted, restrictedTokens);
+        token.finishMinting();
+    }
+    function createTokens() isUnderHardCap saleIsOn payable {
         multisig.transfer(msg.value);
         
-        // uint tokens = rate.mul(msg.value).div(1 ether);
-        token.mint(msg.sender, msg.value);
+        uint tokens = rate.mul(msg.value).div(1 ether);
+        token.mint(msg.sender, tokens);
     }
- 
-    function() external payable {
-        createTokens();
-    }
+    function() external payable { createTokens(); }
 }
