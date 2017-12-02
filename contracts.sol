@@ -27,9 +27,9 @@ library SafeMath {
         return c;
     }
     function sub(uint256 a, uint256 b) internal constant returns (uint256) {
-        assert(b <= a);
+        assert(b <= a); 
         return a - b; 
-    }
+    } 
     function add(uint256 a, uint256 b) internal constant returns (uint256) { 
         uint256 c = a + b; assert(c >= a);
         return c;
@@ -50,7 +50,7 @@ contract BasicToken is ERC20Basic {
         Transfer(msg.sender, _to, _value);
         
         return true; 
-    } 
+    }
     function balanceOf(address _owner) public constant returns (uint256 balance) { 
         return balances[_owner]; 
     } 
@@ -70,7 +70,7 @@ contract StandardToken is ERC20, BasicToken {
         Transfer(_from, _to, _value); 
         
         return true; 
-    }
+    } 
     function approve(address _spender, uint256 _value) public returns (bool) { 
         allowed[msg.sender][_spender] = _value; 
         Approval(msg.sender, _spender, _value); 
@@ -98,12 +98,12 @@ contract StandardToken is ERC20, BasicToken {
 contract Ownable {
     address public owner;
 
-    function Ownable() { owner = msg.sender; }
-    
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
+
+    function Ownable() {owner = msg.sender;}
     
     function transferOwnership(address newOwner) onlyOwner {
         require(newOwner != address(0));      
@@ -112,9 +112,6 @@ contract Ownable {
 }
 
 contract MintableToken is StandardToken, Ownable {
-    event Mint(address indexed to, uint256 amount);
-    event MintFinished();
- 
     bool public mintingFinished = false;
     address public saleAgent;
  
@@ -128,7 +125,6 @@ contract MintableToken is StandardToken, Ownable {
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
         Mint(_to, _amount);
-        
         return true;
     }
     function finishMinting() public returns (bool) {
@@ -136,9 +132,11 @@ contract MintableToken is StandardToken, Ownable {
         
         mintingFinished = true;
         MintFinished();
-        
         return true;
     }
+    
+    event Mint(address indexed to, uint256 amount);
+    event MintFinished();
 }
  
 contract SimpleTokenCoin is MintableToken {
@@ -150,15 +148,15 @@ contract SimpleTokenCoin is MintableToken {
 contract Crowdsale is Ownable {
     using SafeMath for uint; 
     
-    address multisig;
-    address restricted;
-    
     SimpleTokenCoin public token = new SimpleTokenCoin();
     
+    address multisig;
     uint start;
     uint period;
-    uint hardcap;
     uint rate;
+    uint hardcap;
+    
+    address restricted;
     uint restrictedPercent;
     
     modifier saleIsOn() {
@@ -172,8 +170,8 @@ contract Crowdsale is Ownable {
     
     function Crowdsale() {
         multisig = 0x583031d1113ad414f02576bd6afabfb302140225;
-        start = 1500379200;
-        period = 2428;
+        start = 1512086400;
+        period = 31 days;
         rate = 2 ether;
         hardcap = 200 ether;
         
@@ -190,7 +188,16 @@ contract Crowdsale is Ownable {
         multisig.transfer(msg.value);
         
         uint tokens = rate.mul(msg.value).div(1 ether);
+        tokens += calculateBonus(tokens);
+        
         token.mint(msg.sender, tokens);
     }
+    function calculateBonus(uint tokens) public returns(uint bonus) {
+        uint bonusTokens = 0;
+        if(now < start + 15 days) { bonusTokens = tokens.div(4); }
+        else if(now < start + 25 days) { bonusTokens = tokens.div(10); }
+        else if(now < start + period) { bonusTokens = tokens.div(20); }
+        return bonusTokens;
+    } 
     function() external payable { createTokens(); }
 }
