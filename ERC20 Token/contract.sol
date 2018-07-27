@@ -248,15 +248,14 @@ contract MintableToken is StandardToken, Ownable {
 		return true;
 	}
 
-	
 }
 
 contract SimpleTokenCoin is MintableToken {
-		
-		string public constant name = "Simple Coin Token";
-		
-		string public constant symbol = "SCT";
-		
-		uint32 public constant decimals = 18;
-		
+
+	string public constant name = "Simple Coin Token";
+
+	string public constant symbol = "SCT";
+
+	uint32 public constant decimals = 18;
+
 }
