@@ -1,8 +1,8 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 interface Regulator {
-    function checkValue(uint amount) public constant returns (bool);
-    function loan() public constant returns (bool);
+    function checkValue(uint amount) external constant returns (bool);
+    function loan() external constant returns (bool);
 }
 
 contract Bank is Regulator {
